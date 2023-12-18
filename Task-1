@@ -1,0 +1,31 @@
+import boto3
+import os
+import sys
+
+
+aws_access_key_id=os.environ['aws_access_key_id']
+aws_secret_access_key=os.environ['aws_secret_access_key']
+client = boto3.client('autoscaling')
+aws_access_key_id = "AKIATM3ZJ4VEZOW5RH5D"
+aws_secret_access_key = "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"
+asgname = "lv-test-cpu"
+
+asg_client = boto3.client('autoscaling',aws_access_key_id=aws_access_key_id,aws_secret_access_key=aws_secret_access_key,region_name='ap-south-1')
+asg_response = asg_client.describe_auto_scaling_groups(AutoScalingGroupNames=[asgname])
+print(asg_response)
+for asg_groupname in asg_response["AutoScalingGroups"]:
+    print(asg_groupname["AutoScalingGroupName"])
+    print(asg_groupname["DesiredCapacity"])
+    print(asg_groupname["MinSize"])
+    running_insta_count = len(asg_groupname["Instances"])
+    print("count of running instances in this group:", len(asg_groupname["Instances"]))
+    ASG_NAME = asg_groupname["AutoScalingGroupName"]
+    if running_insta_count > 1:
+        print("name of the ASG - Availability zones to be updated", ASG_NAME)
+        ASG_Update_response = client.update_auto_scaling_group(
+            ASG_Names = asg_groupname["AutoScalingGroupName"],
+            AvailabilityZones = ["us-west-2", "ca-central-1"]
+        )
+        print("ASG Update response is below: \n", ASG_Update_response)
+    print("Getting autoscaling launch template details in this account")
+    Launchtemplate_Details = asg_groupname["LaunchTemplate"]
